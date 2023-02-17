@@ -229,6 +229,7 @@ class EB_Clang_minus_AOMP(Bundle):
         # Setup configuration options for LLVM
         component['configopts'] = ' '.join([
             "-DLLVM_ENABLE_PROJECTS='clang;lld;compiler-rt'",
+            "-DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi'",
             "-DCLANG_DEFAULT_LINKER=lld",
             "-DGCC_INSTALL_PREFIX=$EBROOTGCC",
             "-DLLVM_ENABLE_ASSERTIONS=ON",
@@ -241,7 +242,11 @@ class EB_Clang_minus_AOMP(Bundle):
         """
         Setup ROCm device libs such that it is built with the local LLVM build
         """
-        component['configopts'] = ' '.join(self.llvm_compiler_flags + ['-DBUILD_HC_LIB=OFF'])
+        stdlib_cxx_include = "-DCMAKE_CXX_FLAGS='-isystem%s -isystem%s'" % (
+			os.path.join(self.installdir, 'include', 'c++', 'v1'),
+			os.path.join(self.installdir, 'include', 'x86_64-unknown-linux-gnu', 'c++', 'v1') # __config_site 
+		)
+        component['configopts'] = ' '.join(self.llvm_compiler_flags + [stdlib_cxx_include, '-DBUILD_HC_LIB=OFF'])
 
     def _configure_omp(self, component):
         """
